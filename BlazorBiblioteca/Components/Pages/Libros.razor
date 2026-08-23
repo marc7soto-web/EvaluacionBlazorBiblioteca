@@ -1,0 +1,51 @@
+@page "/libros"
+
+@using BlazorBiblioteca.Models
+@using System.Net.Http.Json
+
+@inject HttpClient Http
+
+<h3>Listado de Libros</h3>
+
+@if (libros == null)
+{
+    <p>Cargando libros...</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Libro</th>
+                <th>Autor</th>
+                <th>Páginas</th>
+                <th>Fecha Publicación</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var libro in libros)
+            {
+                <tr>
+                    <td>@libro.Id</td>
+                    <td>@libro.NombreLibro</td>
+                    <td>@libro.Autor</td>
+                    <td>@libro.NumPaginas</td>
+                    <td>@libro.FechaPublicacion.ToShortDateString()</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code
+{
+    // Lista de libros obtenida desde la API.
+    private List<Libro>? libros;
+
+    protected override async Task OnInitializedAsync()
+    {
+        libros = await Http.GetFromJsonAsync<List<Libro>>("api/libros");
+    }
+}

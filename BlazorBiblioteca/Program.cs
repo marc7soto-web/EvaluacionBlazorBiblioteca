@@ -1,6 +1,7 @@
 using BlazorBiblioteca.Components;
 using BlazorBiblioteca.Context;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,19 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<LibroDBContext>(options =>
 options.UseSqlServer(
 builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Registra HttpClient para consumir la API del proyecto.
+builder.Services.AddScoped(sp =>
+{
+    var navigationManager =
+        sp.GetRequiredService<NavigationManager>();
+
+    return new HttpClient
+    {
+        BaseAddress = new Uri(navigationManager.BaseUri)
+    };
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
