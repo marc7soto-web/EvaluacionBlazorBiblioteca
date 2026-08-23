@@ -37,5 +37,35 @@ namespace BlazorBiblioteca.Controllers
                 new { id = libro.Id },
                 libro);
         }
+
+        // Obtiene un libro por su Id.
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Libro>> GetLibro(int id)
+        {
+            var libro = await _context.Libros.FindAsync(id);
+
+            if (libro == null)
+            {
+                return NotFound();
+            }
+
+            return libro;
+        }
+
+        // Actualiza un libro que exista
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutLibro(int id, Libro libro)
+        {
+            if (id != libro.Id)
+            {
+                return BadRequest();
+            }
+
+            _context.Entry(libro).State = EntityState.Modified;
+
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
     }
 }

@@ -15,27 +15,27 @@ else
 {
     <table class="table">
         <thead>
-            <tr>
-                <th>Id</th>
-                <th>Libro</th>
-                <th>Autor</th>
-                <th>Páginas</th>
-                <th>Fecha Publicación</th>
-            </tr>
+          <tr>
+            <th>Id</th>
+            <th>Libro</th>
+            <th>Autor</th>
+            <th>Páginas</th>
+            <th>Fecha Publicación</th>
+          </tr>
         </thead>
 
         <tbody>
-            @foreach (var libro in libros)
-            {
-                <tr>
-                    <td>@libro.Id</td>
-                    <td>@libro.NombreLibro</td>
-                    <td>@libro.Autor</td>
-                    <td>@libro.NumPaginas</td>
-                    <td>@libro.FechaPublicacion.ToShortDateString()</td>
-                </tr>
-            }
-        </tbody>
+    @foreach (var libro in libros)
+    {
+        <tr>
+            <td>@libro.Id</td>
+            <td>@libro.NombreLibro</td>
+            <td>@libro.Autor</td>
+            <td>@libro.NumPaginas</td>
+            <td>@libro.FechaPublicacion.ToShortDateString()</td>
+        </tr>
+    }
+</tbody>
     </table>
 }
 
