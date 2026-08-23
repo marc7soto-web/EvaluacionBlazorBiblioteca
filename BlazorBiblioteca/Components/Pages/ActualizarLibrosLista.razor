@@ -1,0 +1,63 @@
+@page "/actualizar-libros-lista"
+@rendermode InteractiveServer
+
+@using BlazorBiblioteca.Models
+@using System.Net.Http.Json
+
+@inject HttpClient Http
+
+<h3>Actualizar Libros desde Lista</h3>
+
+@if (libros == null)
+{
+    <p>Cargando libros...</p>
+}
+else if (!libros.Any())
+{
+    <p>No existen libros en la biblioteca actualmente.</p>
+}
+else
+{
+    <table class="table">
+
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Libro</th>
+                <th>Autor</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var libro in libros)
+            {
+                <tr @key="libro.Id">
+                    <td>@libro.Id</td>
+                    <td>@libro.NombreLibro</td>
+                    <td>@libro.Autor</td>
+
+                    <td>
+                        <a href="/editar-libro/@libro.Id">
+                            ✏️ Editar
+                        </a>
+                    </td>
+
+                </tr>
+            }
+        </tbody>
+
+    </table>
+}
+
+@code
+{
+    // Lista de libros obtenida desde la API.
+    private List<Libro>? libros;
+
+    protected override async Task OnInitializedAsync()
+    {
+        libros = await Http.GetFromJsonAsync<List<Libro>>(
+            "api/libros");
+    }
+}
