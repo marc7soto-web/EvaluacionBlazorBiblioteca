@@ -1,0 +1,82 @@
+@page "/editar-libro/{Id:int}"
+@rendermode InteractiveServer
+
+@using BlazorBiblioteca.Models
+@using System.Net.Http.Json
+@using Microsoft.AspNetCore.Components.Forms
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<h3>Actualizar Libro</h3>
+
+<EditForm Model="libro" OnValidSubmit="GuardarCambios" FormName="NuevoLibroForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Nombre del Libro</label>
+        <InputText class="form-control" @bind-Value="libro.NombreLibro" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Autor</label>
+        <InputText class="form-control" @bind-Value="libro.Autor" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Cantidad de páginas</label>
+        <InputNumber class="form-control" @bind-Value="libro.NumPaginas" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Fecha de publicación</label>
+        <InputDate class="form-control" @bind-Value="libro.FechaPublicacion" />
+    </div>
+
+    <button type="submit" class="btn btn-warning">
+        Guardar Cambios
+    </button>
+</EditForm>
+
+@code
+{
+    // Recibe el ID enviado desde la lista
+    [Parameter]
+    public int Id { get; set; }
+
+    // Libro seleccionado.
+    private Libro libro = new();
+
+    // Carga los datos del libro al abrir la página
+    protected override async Task OnInitializedAsync()
+    {
+        var resultado =
+            await Http.GetFromJsonAsync<Libro>(
+                $"api/libros/{Id}");
+
+        if (resultado != null)
+        {
+            libro = resultado;
+        }
+    }
+
+    // Guarda los cambios en la base de datos
+    private async Task GuardarCambios()
+    {
+        bool confirmar = await JS.InvokeAsync<bool>(
+            "confirm",
+            $"¿Está seguro de actualizar el libro '{libro.NombreLibro}'?");
+
+        if (!confirmar)
+        {
+            return;
+        }
+
+        await Http.PutAsJsonAsync(
+            $"api/libros/{libro.Id}", libro);
+
+        Navigation.NavigateTo("/actualizar-libros-lista");
+    }
+}
