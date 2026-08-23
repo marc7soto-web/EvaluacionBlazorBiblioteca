@@ -1,4 +1,6 @@
 using BlazorBiblioteca.Components;
+using BlazorBiblioteca.Context;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -6,6 +8,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+// Registra el contexto de Entity Framework para conectarse a BibliotecaDB.
+builder.Services.AddDbContext<LibroDBContext>(options =>
+options.UseSqlServer(
+builder.Configuration.GetConnectionString("DefaultConnection")));
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
