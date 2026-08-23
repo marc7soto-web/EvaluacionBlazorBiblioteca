@@ -1,0 +1,63 @@
+@page "/eliminar-libros"
+@rendermode InteractiveServer
+
+@using BlazorBiblioteca.Models
+@using System.Net.Http.Json
+
+@inject HttpClient Http
+
+<h3>Eliminar Libro</h3>
+
+<div class="mb-3">
+    <label class="form-label">ID del Libro</label>
+    <InputNumber class="form-control"
+                 @bind-Value="idBuscar" />
+</div>
+
+<button class="btn btn-secondary"
+        @onclick="BuscarLibro">
+    Buscar
+</button>
+
+@if (libro != null)
+{
+    <hr />
+
+    <p><strong>Id:</strong> @libro.Id</p>
+    <p><strong>Libro:</strong> @libro.NombreLibro</p>
+    <p><strong>Autor:</strong> @libro.Autor</p>
+    <p><strong>Páginas:</strong> @libro.NumPaginas</p>
+
+    <button class="btn btn-danger"
+            @onclick="EliminarLibro">
+        Eliminar Libro
+    </button>
+}
+
+@code
+{
+    // ID ingresado para buscar el libro.
+    private int? idBuscar;
+
+    // Libro encontrado.
+    private Libro? libro;
+
+    // Busca un libro por ID.
+    private async Task BuscarLibro()
+    {
+        if (idBuscar != null)
+        {
+            libro = await Http.GetFromJsonAsync<Libro>(
+                $"api/libros/{idBuscar}");
+        }
+    }
+
+    // Elimina el libro seleccionado.
+    private async Task EliminarLibro()
+    {
+        await Http.DeleteAsync(
+            $"api/libros/{libro!.Id}");
+
+        libro = null;
+    }
+}
