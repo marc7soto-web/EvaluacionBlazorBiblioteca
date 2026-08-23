@@ -8,6 +8,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+// Habilita el uso de controladores API.
+builder.Services.AddControllers();
+
 // Registra el contexto de Entity Framework para conectarse a BibliotecaDB.
 builder.Services.AddDbContext<LibroDBContext>(options =>
 options.UseSqlServer(
@@ -29,5 +32,8 @@ app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+// Habilita las rutas de los controladores.
+app.MapControllers();
 
 app.Run();
