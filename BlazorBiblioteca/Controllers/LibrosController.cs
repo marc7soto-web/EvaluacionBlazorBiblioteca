@@ -24,5 +24,18 @@ namespace BlazorBiblioteca.Controllers
         {
             return await _context.Libros.ToListAsync();
         }
+
+        // Agrega un nuevo libro a la base de datos.
+        [HttpPost]
+        public async Task<ActionResult<Libro>> PostLibro(Libro libro)
+        {
+            _context.Libros.Add(libro);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(
+                nameof(GetLibros),
+                new { id = libro.Id },
+                libro);
+        }
     }
 }

@@ -9,15 +9,18 @@ namespace BlazorBiblioteca.Models
         public int Id { get; set; }
 
         // Nombre del libro
-        [Required]
+        [Required(ErrorMessage = "Debe ingresar el nombre del libro.")]
         public string NombreLibro { get; set; } = string.Empty;
 
         // Autor del libro
-        [Required]
+        [Required(ErrorMessage = "Debe ingresar el nombre del autor.")]
         public string Autor { get; set; } = string.Empty;
 
         // Cantidad de páginas
-        public int NumPaginas { get; set; }
+        [Required(ErrorMessage = "Debe ingresar la cantidad de páginas.")]
+        [Range(2, int.MaxValue,
+            ErrorMessage = "La cantidad de páginas debe ser mayor que 1.")]
+        public int? NumPaginas { get; set; }
 
         // Fecha de publicación
         public DateTime FechaPublicacion { get; set; }
