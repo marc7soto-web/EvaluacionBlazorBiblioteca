@@ -36,7 +36,7 @@ else
             <td>@libro.NombreLibro</td>
             <td>@libro.Autor</td>
             <td>@libro.NumPaginas</td>
-           <td>@libro.FechaPublicacion.ToShortDateString()</td>
+           <td>@libro.FechaPublicacion?.ToShortDateString()</td>
         </tr>
 }
 </tbody>

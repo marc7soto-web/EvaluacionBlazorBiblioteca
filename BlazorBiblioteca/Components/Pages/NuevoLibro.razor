@@ -49,10 +49,7 @@
 @code
 {
     // Objeto que almacena la información ingresada.
-    private Libro libro = new()
-    {
-        FechaPublicacion = DateTime.Today
-    };
+    private Libro libro = new();
 
     // Guarda el libro en la base de datos
     private string mensaje = string.Empty;
@@ -66,10 +63,8 @@
 
             if (respuesta.IsSuccessStatusCode)
             {
-                mensaje = "Se ha ingresado un nuevo libro en la Biblioteca";libro = new Libro()
-                {
-                FechaPublicacion = DateTime.Today
-                };
+                mensaje = "Se ha ingresado un nuevo libro en la Biblioteca";
+                libro = new Libro();
             }
             else
             {

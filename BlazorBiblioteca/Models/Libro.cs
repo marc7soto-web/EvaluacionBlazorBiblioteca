@@ -23,6 +23,7 @@ namespace BlazorBiblioteca.Models
         public int? NumPaginas { get; set; }
 
         // Fecha de publicación
-        public DateTime FechaPublicacion { get; set; }
+        [Required(ErrorMessage = "La fecha de publicación es obligatoria")]
+        public DateTime? FechaPublicacion { get; set; }
     }
 }
