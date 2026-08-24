@@ -20,10 +20,17 @@
     Buscar
 </button>
 
-@if (!string.IsNullOrEmpty(mensaje))
+@if (!string.IsNullOrEmpty(mensajeError))
 {
     <div class="alert alert-danger mt-3">
-        @mensaje
+        @mensajeError
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(mensajeExito))
+{
+    <div class="alert alert-success mt-3">
+        @mensajeExito
     </div>
 }
 
@@ -36,8 +43,7 @@
     <p><strong>Autor:</strong> @libro.Autor</p>
     <p><strong>Páginas:</strong> @libro.NumPaginas</p>
 
-    <button class="btn btn-danger"
-            @onclick="EliminarLibro">
+    <button class="btn btn-danger" @onclick="EliminarLibro">
         Eliminar Libro
     </button>
 }
@@ -51,15 +57,17 @@
     private Libro? libro;
 
     // Busca un libro por ID
-    private string mensaje = string.Empty;
+    private string mensajeError = string.Empty;
+    private string mensajeExito = string.Empty;
     private async Task BuscarLibro()
     {
-        mensaje = string.Empty;
+        mensajeError = string.Empty;
+        mensajeExito = string.Empty;
         libro = null;
 
         if (idBuscar == null)
         {
-            mensaje = "Debe ingresar un ID.";
+            mensajeError = "Debe ingresar un ID.";
             return;
         }
         try
@@ -67,12 +75,12 @@
             libro = await Http.GetFromJsonAsync<Libro>($"api/libros/{idBuscar}");
             if (libro == null)
             {
-                mensaje = "El ID ingresado no existe.";
+                mensajeError = "El ID ingresado no existe.";
             }
         }
         catch
         {
-            mensaje = "El ID ingresado no existe.";
+            mensajeError = "El ID ingresado no existe.";
             libro = null;
         }
     }
@@ -80,18 +88,31 @@
     // Elimina el libro seleccionado
     private async Task EliminarLibro()
     {
-        bool confirmar = await JS.InvokeAsync<bool>(
-            "confirm",
-            $"¿Está seguro de eliminar el libro '{libro!.NombreLibro}'?");
+        mensajeError = string.Empty;
+        mensajeExito = string.Empty;
 
+        bool confirmar = await JS.InvokeAsync<bool>("confirm", $"¿Está seguro de eliminar el libro '{libro!.NombreLibro}'?");
         if (!confirmar)
         {
             return;
         }
-
-        await Http.DeleteAsync(
-            $"api/libros/{libro.Id}");
-
-        libro = null;
+        try
+        {
+            var respuesta =
+                await Http.DeleteAsync($"api/libros/{libro.Id}");
+            if (respuesta.IsSuccessStatusCode)
+            {
+                mensajeExito = "Libro eliminado correctamente";
+                libro = null;
+            }
+            else
+            {
+                mensajeError = "Error al eliminar libro";
+            }
+        }
+        catch
+        {
+            mensajeError = "Error al eliminar libro";
+        }
     }
 }

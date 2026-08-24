@@ -6,12 +6,11 @@
 @using Microsoft.AspNetCore.Components.Forms
 
 @inject HttpClient Http
-@inject NavigationManager Navigation
 @inject IJSRuntime JS
 
 <h3>Actualizar Libro</h3>
 
-<EditForm Model="libro" OnValidSubmit="GuardarCambios" FormName="NuevoLibroForm">
+<EditForm Model="libro" OnValidSubmit="GuardarCambios" FormName="EditarLibroForm">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
@@ -38,6 +37,13 @@
     <button type="submit" class="btn btn-warning">
         Guardar Cambios
     </button>
+
+    @if (!string.IsNullOrEmpty(mensaje))
+    {
+        <div class="alert alert-info mt-3">
+            @mensaje
+        </div>
+    }
 </EditForm>
 
 @code
@@ -63,20 +69,31 @@
     }
 
     // Guarda los cambios en la base de datos
+    private string mensaje = string.Empty;
     private async Task GuardarCambios()
     {
         bool confirmar = await JS.InvokeAsync<bool>(
-            "confirm",
-            $"¿Está seguro de actualizar el libro '{libro.NombreLibro}'?");
+            "confirm", $"¿Está seguro de actualizar el libro '{libro.NombreLibro}'?");
 
         if (!confirmar)
         {
             return;
         }
-
-        await Http.PutAsJsonAsync(
-            $"api/libros/{libro.Id}", libro);
-
-        Navigation.NavigateTo("/actualizar-libros-lista");
+        try
+        {
+            var respuesta = await Http.PutAsJsonAsync($"api/libros/{libro.Id}",libro);
+            if (respuesta.IsSuccessStatusCode)
+            {
+                mensaje = $"Se ha actualizado el libro {libro.NombreLibro}";
+            }
+            else
+            {
+                mensaje = $"Error al actualizar Libro {libro.NombreLibro}";
+            }
+        }
+        catch
+        {
+            mensaje = $"Error al actualizar Libro {libro.NombreLibro}";
+        }
     }
 }

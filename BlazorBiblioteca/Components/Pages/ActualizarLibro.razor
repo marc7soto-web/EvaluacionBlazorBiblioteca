@@ -22,10 +22,17 @@
     Buscar
 </button>
 
-@if (!string.IsNullOrEmpty(mensaje))
+@if (!string.IsNullOrEmpty(mensajeError))
 {
-    <div class="alert alert-danger">
-        @mensaje
+    <div class="alert alert-danger mt-3">
+        @mensajeError
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(mensajeExito))
+{
+    <div class="alert alert-success mt-3">
+        @mensajeExito
     </div>
 }
 
@@ -78,15 +85,17 @@
     private Libro? libro;
 
     // Busca un libro por ID
-    private string mensaje = string.Empty;
+    private string mensajeError = string.Empty;
+    private string mensajeExito = string.Empty;
     private async Task BuscarLibro()
     {
-        mensaje = string.Empty;
+        mensajeError = string.Empty;
+        mensajeExito = string.Empty;
         libro = null;
 
         if (idBuscar == null)
             {
-            mensaje = "Debe ingresar un ID.";
+            mensajeError = "Debe ingresar un ID.";
             return;
             }
         try
@@ -94,12 +103,12 @@
             libro = await Http.GetFromJsonAsync<Libro>($"api/libros/{idBuscar}");
             if (libro == null)
                 {
-                mensaje = "El ID ingresado no existe.";
+                mensajeError = "Error: El ID ingresado no existe.";
                 }
         }
         catch
         {
-            mensaje = "El ID ingresado no existe.";
+            mensajeError = "Error: El ID ingresado no existe.";
             libro = null;
         }
     }
@@ -107,10 +116,24 @@
     // Guarda los cambios realizados.
     private async Task GuardarCambios()
     {
-        await Http.PutAsJsonAsync(
-            $"api/libros/{libro!.Id}",
-            libro);
+        mensajeError = string.Empty;
+        mensajeExito = string.Empty;
+        try
+        {
+            var respuesta = await Http.PutAsJsonAsync($"api/libros/{libro!.Id}", libro);
 
-        Navigation.NavigateTo("/libros");
+            if (respuesta.IsSuccessStatusCode)
+            {
+                mensajeExito = $"Se ha actualizado el libro {libro.NombreLibro}";
+            }
+            else
+            {
+                mensajeError = $"Error al actualizar Libro {libro.NombreLibro}";
+            }
+        }
+        catch
+        {
+            mensajeError = $"Error al actualizar Libro {libro?.NombreLibro}";
+        }
     }
 }

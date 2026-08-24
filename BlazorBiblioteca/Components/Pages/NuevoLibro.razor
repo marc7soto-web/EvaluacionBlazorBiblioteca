@@ -37,6 +37,13 @@
     <button type="submit" class="btn btn-primary">
         Guardar
     </button>
+
+    @if (!string.IsNullOrEmpty(mensaje))
+    {
+        <div class="alert alert-info mt-3">
+            @mensaje
+        </div>
+    }
 </EditForm>
 
 @code
@@ -47,13 +54,31 @@
         FechaPublicacion = DateTime.Today
     };
 
-    // Guarda el libro en la base de datos.
+    // Guarda el libro en la base de datos
+    private string mensaje = string.Empty;
+
     private async Task GuardarLibro()
     {
-        Console.WriteLine("Entró a GuardarLibro");
+        try
+        {
+            var respuesta =
+                await Http.PostAsJsonAsync("api/libros",libro);
 
-        await Http.PostAsJsonAsync("api/libros", libro);
-
-        Navigation.NavigateTo("/libros");
+            if (respuesta.IsSuccessStatusCode)
+            {
+                mensaje = "Se ha ingresado un nuevo libro en la Biblioteca";libro = new Libro()
+                {
+                FechaPublicacion = DateTime.Today
+                };
+            }
+            else
+            {
+                mensaje = "Error al ingresar nuevo Libro";
+            }
+        }
+        catch
+        {
+            mensaje = "Error al ingresar nuevo Libro";
+        }
     }
 }
