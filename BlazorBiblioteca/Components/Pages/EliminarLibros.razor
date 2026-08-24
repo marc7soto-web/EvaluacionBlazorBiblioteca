@@ -20,6 +20,13 @@
     Buscar
 </button>
 
+@if (!string.IsNullOrEmpty(mensaje))
+{
+    <div class="alert alert-danger mt-3">
+        @mensaje
+    </div>
+}
+
 @if (libro != null)
 {
     <hr />
@@ -43,13 +50,30 @@
     // Libro encontrado.
     private Libro? libro;
 
-    // Busca un libro por ID.
+    // Busca un libro por ID
+    private string mensaje = string.Empty;
     private async Task BuscarLibro()
     {
-        if (idBuscar != null)
+        mensaje = string.Empty;
+        libro = null;
+
+        if (idBuscar == null)
         {
-            libro = await Http.GetFromJsonAsync<Libro>(
-                $"api/libros/{idBuscar}");
+            mensaje = "Debe ingresar un ID.";
+            return;
+        }
+        try
+        {
+            libro = await Http.GetFromJsonAsync<Libro>($"api/libros/{idBuscar}");
+            if (libro == null)
+            {
+                mensaje = "El ID ingresado no existe.";
+            }
+        }
+        catch
+        {
+            mensaje = "El ID ingresado no existe.";
+            libro = null;
         }
     }
 
