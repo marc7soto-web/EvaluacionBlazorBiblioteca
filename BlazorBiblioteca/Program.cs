@@ -9,6 +9,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+// Registra los servicios de Blazor Bootstrap.
+builder.Services.AddBlazorBootstrap();
+
 // Habilita el uso de controladores API.
 builder.Services.AddControllers();
 
