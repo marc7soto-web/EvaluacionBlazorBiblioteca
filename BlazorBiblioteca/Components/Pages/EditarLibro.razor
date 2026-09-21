@@ -3,97 +3,264 @@
 
 @using BlazorBiblioteca.Models
 @using System.Net.Http.Json
+@using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Components.Forms
 
 @inject HttpClient Http
 @inject IJSRuntime JS
+@inject PreloadService PreloadService
 
-<h3>Actualizar Libro</h3>
+<h3>Actualizar Libro desde Lista</h3>
 
-<EditForm Model="libro" OnValidSubmit="GuardarCambios" FormName="EditarLibroForm">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+<!-- Preload mostrado durante el proceso de actualización. -->
+<Preload LoadingText="Actualizando libro..." />
 
-    <div class="mb-3">
-        <label class="form-label">Nombre del Libro</label>
-        <InputText class="form-control" @bind-Value="libro.NombreLibro" />
+@if (cargandoLibro)
+{
+    <div class="mt-3">
+        <Alert Color="AlertColor.Info">
+            Cargando información del libro...
+        </Alert>
     </div>
-
-    <div class="mb-3">
-        <label class="form-label">Autor</label>
-        <InputText class="form-control" @bind-Value="libro.Autor" />
+}
+else if (!string.IsNullOrEmpty(mensajeCargaError))
+{
+    <div class="mt-3">
+        <Alert Color="AlertColor.Danger">
+            @mensajeCargaError
+        </Alert>
     </div>
+}
+else
+{
+    <EditForm Model="libro"
+              FormName="EditarLibroForm">
 
-    <div class="mb-3">
-        <label class="form-label">Cantidad de páginas</label>
-        <InputNumber class="form-control" @bind-Value="libro.NumPaginas" />
-    </div>
+        <div class="mb-3">
+            <label class="form-label">Nombre del Libro</label>
 
-    <div class="mb-3">
-        <label class="form-label">Fecha de publicación</label>
-        <InputDate class="form-control" @bind-Value="libro.FechaPublicacion" />
-    </div>
-
-    <button type="submit" class="btn btn-warning">
-        Guardar Cambios
-    </button>
-
-    @if (!string.IsNullOrEmpty(mensaje))
-    {
-        <div class="alert alert-info mt-3">
-            @mensaje
+            <TextInput @bind-Value="libro.NombreLibro"
+                       Placeholder="Ingrese nombre del libro" />
         </div>
-    }
-</EditForm>
+
+        <div class="mb-3">
+            <label class="form-label">Autor</label>
+
+            <TextInput @bind-Value="libro.Autor"
+                       Placeholder="Ingrese nombre del autor" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Cantidad de páginas</label>
+
+            <NumberInput TValue="int?"
+                         @bind-Value="libro.NumPaginas"
+                         Placeholder="Ingrese cantidad de páginas" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">
+                Fecha de publicación (dd-MM-aaaa)
+            </label>
+
+            <DateInput TValue="DateTime?"
+                       @bind-Value="libro.FechaPublicacion"
+                       Placeholder="Seleccione una fecha" />
+        </div>
+
+        <!-- Muestra las validaciones establecidas en Libro.cs. -->
+        @if (erroresValidacion.Count > 0)
+        {
+            <div class="mb-3">
+                <Alert Color="AlertColor.Danger">
+                    <strong>Revise los datos ingresados:</strong>
+
+                    <ul class="mb-0 mt-2">
+                        @foreach (var error in erroresValidacion)
+                        {
+                            <li>@error</li>
+                        }
+                    </ul>
+                </Alert>
+            </div>
+        }
+
+        <!-- Botón amarillo de tamaño mediano. -->
+        <Button Type="ButtonType.Button"
+                Color="ButtonColor.Warning"
+                Disabled="procesando"
+                @onclick="ConfirmarYActualizarLibro">
+            Actualizar Libro
+        </Button>
+
+        <!-- Alerta amarilla después de actualizar correctamente. -->
+        @if (!string.IsNullOrEmpty(mensajeExito))
+        {
+            <div class="mt-3">
+                <Alert Color="AlertColor.Warning"
+                       Dismissable="true">
+                    @mensajeExito
+                </Alert>
+            </div>
+        }
+
+        <!-- Alerta roja si ocurre un error al actualizar. -->
+        @if (!string.IsNullOrEmpty(mensajeError))
+        {
+            <div class="mt-3">
+                <Alert Color="AlertColor.Danger"
+                       Dismissable="true">
+                    @mensajeError
+                </Alert>
+            </div>
+        }
+
+    </EditForm>
+}
 
 @code
 {
-    // Recibe el ID enviado desde la lista
+    // Recibe el ID seleccionado desde la lista de libros.
     [Parameter]
     public int Id { get; set; }
 
-    // Libro seleccionado.
+    // Libro seleccionado y enlazado al formulario.
     private Libro libro = new();
 
-    // Carga los datos del libro al abrir la página
+    // Almacena los mensajes obtenidos desde las DataAnnotations.
+    private List<string> erroresValidacion = new();
+
+    // Controla el estado de carga inicial.
+    private bool cargandoLibro = true;
+
+    // Evita ejecutar varias veces la actualización.
+    private bool procesando = false;
+
+    private string mensajeCargaError = string.Empty;
+    private string mensajeExito = string.Empty;
+    private string mensajeError = string.Empty;
+
+    // Carga los datos del libro al abrir la página.
     protected override async Task OnInitializedAsync()
     {
-        var resultado =
-            await Http.GetFromJsonAsync<Libro>(
+        cargandoLibro = true;
+        mensajeCargaError = string.Empty;
+
+        try
+        {
+            var respuesta = await Http.GetAsync(
                 $"api/libros/{Id}");
 
-        if (resultado != null)
-        {
+            if (!respuesta.IsSuccessStatusCode)
+            {
+                mensajeCargaError =
+                    "El libro seleccionado no existe.";
+
+                return;
+            }
+
+            var resultado =
+                await respuesta.Content.ReadFromJsonAsync<Libro>();
+
+            if (resultado == null)
+            {
+                mensajeCargaError =
+                    "No se pudieron cargar los datos del libro.";
+
+                return;
+            }
+
             libro = resultado;
+        }
+        catch
+        {
+            mensajeCargaError =
+                "Error al cargar los datos del libro.";
+        }
+        finally
+        {
+            cargandoLibro = false;
         }
     }
 
-    // Guarda los cambios en la base de datos
-    private string mensaje = string.Empty;
-    private async Task GuardarCambios()
+    // Valida los datos y solicita confirmación antes de actualizar.
+    private async Task ConfirmarYActualizarLibro()
     {
+        erroresValidacion.Clear();
+        mensajeExito = string.Empty;
+        mensajeError = string.Empty;
+
+        var resultados = new List<ValidationResult>();
+        var contextoValidacion = new ValidationContext(libro);
+
+        bool datosValidos = Validator.TryValidateObject(
+            libro,
+            contextoValidacion,
+            resultados,
+            validateAllProperties: true);
+
+        if (!datosValidos)
+        {
+            erroresValidacion = resultados
+                .Where(resultado =>
+                    !string.IsNullOrWhiteSpace(resultado.ErrorMessage))
+                .Select(resultado => resultado.ErrorMessage!)
+                .ToList();
+
+            return;
+        }
+
         bool confirmar = await JS.InvokeAsync<bool>(
-            "confirm", $"¿Está seguro de actualizar el libro '{libro.NombreLibro}'?");
+            "confirm",
+            $"¿Está seguro de actualizar el libro '{libro.NombreLibro}'?");
 
         if (!confirmar)
         {
             return;
         }
+
+        await GuardarCambios();
+    }
+
+    // Guarda los cambios en la base de datos mediante la API.
+    private async Task GuardarCambios()
+    {
+        procesando = true;
+
         try
         {
-            var respuesta = await Http.PutAsJsonAsync($"api/libros/{libro.Id}",libro);
+            // Muestra el Preload durante tres segundos.
+            PreloadService.Show(
+                SpinnerColor.Light,
+                "Actualizando libro...");
+
+            await Task.Delay(3000);
+
+            var respuesta = await Http.PutAsJsonAsync(
+                $"api/libros/{libro.Id}",
+                libro);
+
             if (respuesta.IsSuccessStatusCode)
             {
-                mensaje = $"Se ha actualizado el libro {libro.NombreLibro}";
+                mensajeExito =
+                    $"Se ha actualizado el libro {libro.NombreLibro}";
             }
             else
             {
-                mensaje = $"Error al actualizar Libro {libro.NombreLibro}";
+                mensajeError =
+                    $"Error al actualizar Libro {libro.NombreLibro}";
             }
         }
         catch
         {
-            mensaje = $"Error al actualizar Libro {libro.NombreLibro}";
+            mensajeError =
+                $"Error al actualizar Libro {libro.NombreLibro}";
+        }
+        finally
+        {
+            // Oculta el Preload y habilita nuevamente el botón.
+            PreloadService.Hide();
+            procesando = false;
         }
     }
 }
