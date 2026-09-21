@@ -16,22 +16,30 @@
 
     <div class="mb-3">
         <label class="form-label">Nombre del Libro</label>
-        <InputText class="form-control" @bind-Value="libro.NombreLibro" />
+
+        <TextInput @bind-Value="libro.NombreLibro"
+                   Placeholder="Ingrese nombre del libro" />
     </div>
 
     <div class="mb-3">
         <label class="form-label">Autor</label>
-        <InputText class="form-control" @bind-Value="libro.Autor" />
+
+        <TextInput @bind-Value="libro.Autor"
+                   Placeholder="Ingrese nombre del autor" />
     </div>
 
     <div class="mb-3">
         <label class="form-label">Cantidad de páginas</label>
-        <InputNumber class="form-control" @bind-Value="libro.NumPaginas" />
+
+        <NumberInput TValue="int?"
+                     @bind-Value="libro.NumPaginas" />
     </div>
 
     <div class="mb-3">
         <label class="form-label">Fecha de publicación</label>
-        <InputDate class="form-control" @bind-Value="libro.FechaPublicacion" />
+
+        <DateInput TValue="DateTime?"
+                   @bind-Value="libro.FechaPublicacion" />
     </div>
 
     <button type="submit" class="btn btn-primary">
@@ -59,21 +67,27 @@
         try
         {
             var respuesta =
-                await Http.PostAsJsonAsync("api/libros",libro);
+                await Http.PostAsJsonAsync(
+                    "api/libros",
+                    libro);
 
             if (respuesta.IsSuccessStatusCode)
             {
-                mensaje = "Se ha ingresado un nuevo libro en la Biblioteca";
+                mensaje =
+                    "Se ha ingresado un nuevo libro en la Biblioteca";
+
                 libro = new Libro();
             }
             else
             {
-                mensaje = "Error al ingresar nuevo Libro";
+                mensaje =
+                    "Error al ingresar nuevo Libro";
             }
         }
         catch
         {
-            mensaje = "Error al ingresar nuevo Libro";
+            mensaje =
+                "Error al ingresar nuevo Libro";
         }
     }
 }
