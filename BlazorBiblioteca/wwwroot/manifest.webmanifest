@@ -1,6 +1,6 @@
 {
-  "name": "Peliculas",
-  "short_name": "Peliculas",
+  "name": "Biblioteca William Wallace",
+  "short_name": "Biblioteca",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
