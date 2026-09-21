@@ -1,0 +1,104 @@
+/* Fondo general de la aplicacion. */
+html,
+body {
+    min-height: 100%;
+}
+
+body {
+    margin: 0;
+    color: #24333d;
+    background: linear-gradient(135deg, #fff4e6 0%, #ffe0cc 45%, #d9f0e8 100%);
+    background-attachment: fixed;
+}
+
+/* Contenedor principal compartido por formularios y listados. */
+.content {
+    width: calc(100% - 2rem);
+    max-width: 960px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: rgba(255, 255, 255, 0.94);
+    border: 1px solid rgba(49, 92, 76, 0.18);
+    border-radius: 16px;
+    box-shadow: 0 10px 28px rgba(50, 60, 70, 0.14);
+}
+
+.content h3 {
+    margin-bottom: 1.5rem;
+    color: #315c4c;
+    text-align: center;
+}
+
+/* Formularios centrados y con ancho uniforme. */
+.content form {
+    width: 100%;
+    max-width: 860px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.content .mb-3 {
+    width: 100%;
+}
+
+.content input,
+.content select,
+.content textarea,
+.content .form-control {
+    width: 100%;
+}
+
+.content button,
+.content .btn {
+    margin-top: 0.35rem;
+    margin-right: 0.5rem;
+}
+
+/* Listado expandido al mismo ancho del formulario. */
+.content table,
+.content .table {
+    width: 100%;
+    max-width: 860px;
+    margin: 1.5rem auto 0;
+    background-color: #ffffff;
+    border-radius: 10px;
+}
+
+.content .table thead {
+    color: #ffffff;
+    background-color: #315c4c;
+}
+
+.content .table tbody tr:hover {
+    background-color: #f3faf7;
+}
+
+.content .card {
+    width: 100%;
+    max-width: 860px;
+    margin: 1.5rem auto;
+    border: 1px solid rgba(49, 92, 76, 0.2);
+    border-radius: 12px;
+}
+
+.content .alert {
+    width: 100%;
+    max-width: 860px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+/* Adaptacion para pantallas pequenas y la PWA instalada. */
+@media (max-width: 768px) {
+    .content {
+        width: calc(100% - 1rem);
+        margin: 0.75rem auto;
+        padding: 1rem;
+        border-radius: 12px;
+    }
+
+    .content table,
+    .content .table {
+        font-size: 0.9rem;
+    }
+}
