@@ -6,31 +6,43 @@
 
 @inject HttpClient Http
 @inject IJSRuntime JS
+@inject PreloadService PreloadService
 
 <h3>Eliminar Libro</h3>
 
+<!-- Preload mostrado durante el proceso de eliminación. -->
+<Preload LoadingText="Eliminando libro..." />
+
 <div class="mb-3">
     <label class="form-label">ID del Libro</label>
-    <InputNumber class="form-control"
-                 @bind-Value="idBuscar" />
+
+    <NumberInput TValue="int?"
+                 @bind-Value="idBuscar"
+                 Placeholder="Ingrese el ID del libro" />
 </div>
 
-<button class="btn btn-secondary"
+<Button Type="ButtonType.Button"
+        Color="ButtonColor.Secondary"
+        Disabled="procesando"
         @onclick="BuscarLibro">
     Buscar
-</button>
+</Button>
 
 @if (!string.IsNullOrEmpty(mensajeError))
 {
-    <div class="alert alert-danger mt-3">
-        @mensajeError
+    <div class="mt-3">
+        <Alert Color="AlertColor.Danger">
+            @mensajeError
+        </Alert>
     </div>
 }
 
 @if (!string.IsNullOrEmpty(mensajeExito))
 {
-    <div class="alert alert-success mt-3">
-        @mensajeExito
+    <div class="mt-3">
+        <Alert Color="AlertColor.Danger">
+            @mensajeExito
+        </Alert>
     </div>
 }
 
@@ -38,14 +50,28 @@
 {
     <hr />
 
-    <p><strong>Id:</strong> @libro.Id</p>
-    <p><strong>Libro:</strong> @libro.NombreLibro</p>
-    <p><strong>Autor:</strong> @libro.Autor</p>
-    <p><strong>Páginas:</strong> @libro.NumPaginas</p>
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">@libro.NombreLibro</h5>
 
-    <button class="btn btn-danger" @onclick="EliminarLibro">
-        Eliminar Libro
-    </button>
+            <p class="card-text"><strong>ID:</strong> @libro.Id</p>
+            <p class="card-text"><strong>Autor:</strong> @libro.Autor</p>
+            <p class="card-text"><strong>Páginas:</strong> @libro.NumPaginas</p>
+            <p class="card-text">
+                <strong>Fecha de publicación:</strong>
+                @(libro.FechaPublicacion?.ToShortDateString() ?? "Sin fecha")
+            </p>
+
+            <!-- Botón con contorno rojo y tamaño mediano. -->
+            <Button Type="ButtonType.Button"
+                    Color="ButtonColor.Danger"
+                    Outline="true"
+                    Disabled="procesando"
+                    @onclick="EliminarLibro">
+                Eliminar Libro
+            </Button>
+        </div>
+    </div>
 }
 
 @code
@@ -53,12 +79,16 @@
     // ID ingresado para buscar el libro.
     private int? idBuscar;
 
-    // Libro encontrado.
+    // Libro encontrado mediante la API.
     private Libro? libro;
 
-    // Busca un libro por ID
+    // Evita ejecutar varias solicitudes simultáneamente.
+    private bool procesando = false;
+
     private string mensajeError = string.Empty;
     private string mensajeExito = string.Empty;
+
+    // Busca un libro por su ID.
     private async Task BuscarLibro()
     {
         mensajeError = string.Empty;
@@ -70,9 +100,21 @@
             mensajeError = "Debe ingresar un ID.";
             return;
         }
+
+        procesando = true;
+
         try
         {
-            libro = await Http.GetFromJsonAsync<Libro>($"api/libros/{idBuscar}");
+            var respuesta = await Http.GetAsync($"api/libros/{idBuscar}");
+
+            if (!respuesta.IsSuccessStatusCode)
+            {
+                mensajeError = "El ID ingresado no existe.";
+                return;
+            }
+
+            libro = await respuesta.Content.ReadFromJsonAsync<Libro>();
+
             if (libro == null)
             {
                 mensajeError = "El ID ingresado no existe.";
@@ -80,30 +122,54 @@
         }
         catch
         {
-            mensajeError = "El ID ingresado no existe.";
+            mensajeError = "Error al buscar el libro.";
             libro = null;
+        }
+        finally
+        {
+            procesando = false;
         }
     }
 
-    // Elimina el libro seleccionado
+    // Confirma y elimina el libro seleccionado.
     private async Task EliminarLibro()
     {
         mensajeError = string.Empty;
         mensajeExito = string.Empty;
 
-        bool confirmar = await JS.InvokeAsync<bool>("confirm", $"¿Está seguro de eliminar el libro '{libro!.NombreLibro}'?");
+        if (libro == null)
+        {
+            mensajeError = "No existe un libro seleccionado para eliminar.";
+            return;
+        }
+
+        bool confirmar = await JS.InvokeAsync<bool>(
+            "confirm",
+            $"¿Está seguro de eliminar el libro '{libro.NombreLibro}'?");
+
         if (!confirmar)
         {
             return;
         }
+
+        procesando = true;
+
         try
         {
-            var respuesta =
-                await Http.DeleteAsync($"api/libros/{libro.Id}");
+            // Muestra el Preload durante dos segundos.
+            PreloadService.Show(
+                SpinnerColor.Light,
+                "Eliminando libro...");
+
+            await Task.Delay(2000);
+
+            var respuesta = await Http.DeleteAsync($"api/libros/{libro.Id}");
+
             if (respuesta.IsSuccessStatusCode)
             {
                 mensajeExito = "Libro eliminado correctamente";
                 libro = null;
+                idBuscar = null;
             }
             else
             {
@@ -113,6 +179,11 @@
         catch
         {
             mensajeError = "Error al eliminar libro";
+        }
+        finally
+        {
+            PreloadService.Hide();
+            procesando = false;
         }
     }
 }
