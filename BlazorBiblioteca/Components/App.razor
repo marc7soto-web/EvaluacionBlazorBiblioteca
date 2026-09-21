@@ -1,20 +1,51 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
     <base href="/" />
-    <link rel="stylesheet" href="bootstrap/bootstrap.min.css" />
-    <link rel="stylesheet" href="app.css" />
-    <link rel="stylesheet" href="BlazorBiblioteca.styles.css" />
-    <link rel="icon" type="image/png" href="favicon.png" />
+
+    <!-- Bootstrap requerido por Blazor Bootstrap. -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          crossorigin="anonymous" />
+
+    <!-- Iconos oficiales de Bootstrap. -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
+          rel="stylesheet" />
+
+    <!-- Estilos de Blazor Bootstrap. -->
+    <link href="_content/Blazor.Bootstrap/blazor.bootstrap.css"
+          rel="stylesheet" />
+
+    <!-- Estilos propios de la aplicación. -->
+    <link href="app.css"
+          rel="stylesheet" />
+
+    <link href="BlazorBiblioteca.styles.css"
+          rel="stylesheet" />
+
+    <link href="favicon.png"
+          rel="icon"
+          type="image/png" />
+
     <HeadOutlet />
 </head>
 
 <body>
     <Routes />
+
+    <!-- Script principal de Blazor Web App. -->
     <script src="_framework/blazor.web.js"></script>
+
+    <!-- JavaScript de Bootstrap. -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- JavaScript de Blazor Bootstrap. -->
+    <script src="_content/Blazor.Bootstrap/blazor.bootstrap.js"></script>
 </body>
 
 </html>

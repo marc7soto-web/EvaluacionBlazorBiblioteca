@@ -3,16 +3,19 @@
 
 @using BlazorBiblioteca.Models
 @using System.Net.Http.Json
+@using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Components.Forms
 
 @inject HttpClient Http
-@inject NavigationManager Navigation
+@inject PreloadService PreloadService
 
 <h3>Agregar Libro</h3>
 
-<EditForm Model="libro" OnValidSubmit="GuardarLibro" FormName="NuevoLibroForm">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+<!-- Preload mostrado durante el proceso de guardado. -->
+<Preload LoadingText="Guardando libro..." />
+
+<EditForm Model="libro"
+          FormName="NuevoLibroForm">
 
     <div class="mb-3">
         <label class="form-label">Nombre del Libro</label>
@@ -32,62 +35,158 @@
         <label class="form-label">Cantidad de páginas</label>
 
         <NumberInput TValue="int?"
-                     @bind-Value="libro.NumPaginas" />
+                     @bind-Value="libro.NumPaginas"
+                     Placeholder="Ingrese cantidad de páginas" />
     </div>
 
     <div class="mb-3">
-        <label class="form-label">Fecha de publicación</label>
+        <label class="form-label">
+            Fecha de publicación (dd-MM-aaaa)
+        </label>
 
         <DateInput TValue="DateTime?"
-                   @bind-Value="libro.FechaPublicacion" />
+                   @bind-Value="libro.FechaPublicacion"
+                   Placeholder="Seleccione una fecha" />
     </div>
 
-    <button type="submit" class="btn btn-primary">
-        Guardar
-    </button>
-
-    @if (!string.IsNullOrEmpty(mensaje))
+    <!-- Muestra las validaciones definidas en Libro.cs. -->
+    @if (erroresValidacion.Count > 0)
     {
-        <div class="alert alert-info mt-3">
-            @mensaje
+        <div class="mb-3">
+            <Alert Color="AlertColor.Danger">
+                <strong>Revise los datos ingresados:</strong>
+
+                <ul class="mb-0 mt-2">
+                    @foreach (var error in erroresValidacion)
+                    {
+                        <li>@error</li>
+                    }
+                </ul>
+            </Alert>
         </div>
     }
+
+    <!-- Botón verde, con contorno y tamaño grande. -->
+    <Button Type="ButtonType.Button"
+            Color="ButtonColor.Success"
+            Outline="true"
+            Size="ButtonSize.Large"
+            Disabled="procesando"
+            @onclick="ValidarYGuardarLibro">
+        Guardar Libro
+    </Button>
+
+    <!-- Alerta verde para el guardado exitoso. -->
+    @if (!string.IsNullOrEmpty(mensajeExito))
+    {
+        <div class="mt-3">
+            <Alert Color="AlertColor.Success"
+                   Dismissable="true">
+                @mensajeExito
+            </Alert>
+        </div>
+    }
+
+    <!-- Alerta roja si ocurre un error en la API. -->
+    @if (!string.IsNullOrEmpty(mensajeError))
+    {
+        <div class="mt-3">
+            <Alert Color="AlertColor.Danger"
+                   Dismissable="true">
+                @mensajeError
+            </Alert>
+        </div>
+    }
+
 </EditForm>
 
 @code
 {
-    // Objeto que almacena la información ingresada.
+    // Modelo utilizado por el formulario.
     private Libro libro = new();
 
-    // Guarda el libro en la base de datos
-    private string mensaje = string.Empty;
+    // Almacena los mensajes generados por las DataAnnotations.
+    private List<string> erroresValidacion = new();
 
+    // Evita ejecutar varias veces la misma operación.
+    private bool procesando = false;
+
+    private string mensajeExito = string.Empty;
+    private string mensajeError = string.Empty;
+
+    // Valida el modelo antes de enviarlo a la API.
+    private async Task ValidarYGuardarLibro()
+    {
+        erroresValidacion.Clear();
+        mensajeExito = string.Empty;
+        mensajeError = string.Empty;
+
+        var resultados = new List<ValidationResult>();
+        var contextoValidacion = new ValidationContext(libro);
+
+        bool datosValidos = Validator.TryValidateObject(
+            libro,
+            contextoValidacion,
+            resultados,
+            validateAllProperties: true);
+
+        if (!datosValidos)
+        {
+            erroresValidacion = resultados
+                .Where(resultado =>
+                    !string.IsNullOrWhiteSpace(resultado.ErrorMessage))
+                .Select(resultado => resultado.ErrorMessage!)
+                .ToList();
+
+            return;
+        }
+
+        await GuardarLibro();
+    }
+
+    // Guarda el libro en la base de datos mediante la API.
     private async Task GuardarLibro()
     {
+        procesando = true;
+
         try
         {
-            var respuesta =
-                await Http.PostAsJsonAsync(
-                    "api/libros",
-                    libro);
+            // Muestra el Preload durante tres segundos.
+            PreloadService.Show(
+                SpinnerColor.Light,
+                "Guardando libro...");
+
+            await Task.Delay(3000);
+
+            var respuesta = await Http.PostAsJsonAsync(
+                "api/libros",
+                libro);
 
             if (respuesta.IsSuccessStatusCode)
             {
-                mensaje =
+                mensajeExito =
                     "Se ha ingresado un nuevo libro en la Biblioteca";
 
+                // Limpia el formulario después del guardado.
                 libro = new Libro();
+                erroresValidacion.Clear();
             }
             else
             {
-                mensaje =
+                mensajeError =
                     "Error al ingresar nuevo Libro";
             }
         }
         catch
         {
-            mensaje =
+            mensajeError =
                 "Error al ingresar nuevo Libro";
+        }
+        finally
+        {
+            // Oculta el Preload y habilita nuevamente el botón.
+            PreloadService.Hide();
+            procesando = false;
         }
     }
 }
